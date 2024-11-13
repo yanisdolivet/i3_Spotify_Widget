@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+#Requierement
+command -v curl >/dev/null 2>&1 || { echo >&2 "Program 'curl' required but is not installed.
+Aborting."; exit 1; }
+command -v jq >/dev/null 2>&1 || { echo >&2 "Program 'jq' required but it is not installed.
+Aborting."; exit 1; }
+
+# Copy & Paste your access token below
+SPOTIFY_TOKEN_ID="YOUR_ACCESS_TOKEN"
+
+URL="https://api.spotify.com/v1/me/player/currently-playing"
+
+SPOTIFY_RESPONSE=$(curl --request GET \
+    --silent \
+    --url "${URL}" \
+    --header 'Authorization: Bearer '${SPOTIFY_TOKEN_ID})
+
+if [ "${SPOTIFY_RESPONSE} | jq '.error.status'" == "401" ]; then
+    echo "Bad code status. Please check the validation of the access token."
+    exit 1
+fi
+
+GET_URL_ALBUM_COVER=$(echo $SPOTIFY_RESPONSE | jq -r '.item.album.images[2].url')
+
+GET_TITLE=$(echo $SPOTIFY_RESPONSE | jq -r '.item.name')
+
+GET_ARTIST=$(echo $SPOTIFY_RESPONSE | jq -r '.item.artists[0].name')
+
+TEMP_IMAGE_PATH="/tmp/album_cover.jpg"
+
+# Check if we have a valid URL
+if [ ! -n "$GET_URL_ALBUM_COVER" ]; then
+    echo "No album cover found."
+else
+    # Download the image to a temporary file
+    DOWNLOAD_ALBUM_COVER=$(curl -s "$GET_URL_ALBUM_COVER" -o "$TEMP_IMAGE_PATH")
+    DISPLAY_ALBUM_COVER=$(viu -w 2 -h 1 $TEMP_IMAGE_PATH)
+
+    # Clean up the temporary image file
+    rm "$TEMP_IMAGE_PATH"
+fi
+
+# Check if we have a valid Title
+if [ ! -n "$GET_TITLE" ]; then
+    echo "Unknown title."
+fi
+
+# Check if we have a valid Artist
+if [ ! -n "$GET_ARTIST" ]; then
+    echo "Unknown artist."
+fi
+
+echo "⏮・${GET_TITLE} • ${GET_ARTIST} • ⏭"
+
+
