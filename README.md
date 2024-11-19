@@ -31,7 +31,7 @@ color=#3AE075
 
 ```
  below this line  - ``` #The top properties below are applied to every block, but can be overridden```
-- Save & restart your computer
+- You can reload your i3 session or restart your computer to apply these changes
 
 ### 3. **Generate a valid token**
 
